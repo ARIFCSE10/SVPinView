@@ -29,24 +29,24 @@ public class SVPinView: UIView {
     fileprivate var password = [String]()
     
     // MARK: - Public Properties -
-    public var pinLength:Int = 6
-    public var secureCharacter:String = "\u{25CF}"
-    public var interSpace:CGFloat = 5
-    public var textColor:UIColor = UIColor.black
-    public var shouldSecureText:Bool = true
-    public var placeholder:String = ""
+    @IBInspectable public var pinLength:Int = 6
+    @IBInspectable public var secureCharacter:String = "\u{25CF}"
+    @IBInspectable public var interSpace:CGFloat = 5
+    @IBInspectable public var textColor:UIColor = UIColor.black
+    @IBInspectable public var shouldSecureText:Bool = true
+    @IBInspectable public var placeholder:String = ""
     
-    public var borderLineColor:UIColor = UIColor.black
-    public var activeBorderLineColor:UIColor = UIColor.black
+    @IBInspectable public var borderLineColor:UIColor = UIColor.black
+    @IBInspectable public var activeBorderLineColor:UIColor = UIColor.black
     
-    public var borderLineThickness:CGFloat = 2
-    public var activeBorderLineThickness:CGFloat = 4
+    @IBInspectable public var borderLineThickness:CGFloat = 2
+    @IBInspectable public var activeBorderLineThickness:CGFloat = 4
     
-    public var fieldBackgroundColor:UIColor = UIColor.clear
-    public var activeFieldBackgroundColor:UIColor = UIColor.clear
+    @IBInspectable public var fieldBackgroundColor:UIColor = UIColor.clear
+    @IBInspectable public var activeFieldBackgroundColor:UIColor = UIColor.clear
     
-    public var fieldCornerRadius:CGFloat = 0
-    public var activeFieldCornerRadius:CGFloat = 0
+    @IBInspectable public var fieldCornerRadius:CGFloat = 0
+    @IBInspectable public var activeFieldCornerRadius:CGFloat = 0
     
     public var style:SVPinViewStyle = .underline
     
