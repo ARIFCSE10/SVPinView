@@ -8,14 +8,12 @@
 
 import UIKit
 
-@objc
 public enum SVPinViewStyle : Int {
     case none = 0
     case underline
     case box
 }
 
-@objc
 public class SVPinView: UIView {
     
     // MARK: - Private Properties -
@@ -31,30 +29,29 @@ public class SVPinView: UIView {
     fileprivate var password = [String]()
     
     // MARK: - Public Properties -
-    @IBInspectable public var pinLength:Int = 5
-    @IBInspectable public var secureCharacter:String = "\u{25CF}"
-    @IBInspectable public var interSpace:CGFloat = 5
-    @IBInspectable public var textColor:UIColor = UIColor.black
-    @IBInspectable public var shouldSecureText:Bool = true
-    @IBInspectable public var allowsWhitespaces:Bool = true
-    @IBInspectable public var placeholder:String = ""
+    public var pinLength:Int = 6
+    public var secureCharacter:String = "\u{25CF}"
+    public var interSpace:CGFloat = 5
+    public var textColor:UIColor = UIColor.black
+    public var shouldSecureText:Bool = true
+    public var placeholder:String = ""
     
-    @IBInspectable public var borderLineColor:UIColor = UIColor.black
-    @IBInspectable public var activeBorderLineColor:UIColor = UIColor.black
+    public var borderLineColor:UIColor = UIColor.black
+    public var activeBorderLineColor:UIColor = UIColor.black
     
-    @IBInspectable public var borderLineThickness:CGFloat = 2
-    @IBInspectable public var activeBorderLineThickness:CGFloat = 4
+    public var borderLineThickness:CGFloat = 2
+    public var activeBorderLineThickness:CGFloat = 4
     
-    @IBInspectable public var fieldBackgroundColor:UIColor = UIColor.clear
-    @IBInspectable public var activeFieldBackgroundColor:UIColor = UIColor.clear
+    public var fieldBackgroundColor:UIColor = UIColor.clear
+    public var activeFieldBackgroundColor:UIColor = UIColor.clear
     
-    @IBInspectable public var fieldCornerRadius:CGFloat = 0
-    @IBInspectable public var activeFieldCornerRadius:CGFloat = 0
+    public var fieldCornerRadius:CGFloat = 0
+    public var activeFieldCornerRadius:CGFloat = 0
     
     public var style:SVPinViewStyle = .underline
     
     public var font:UIFont = UIFont.systemFont(ofSize: 15)
-    public var keyboardType:UIKeyboardType = UIKeyboardType.phonePad
+    public var keyboardType:UIKeyboardType = UIKeyboardType.numberPad
     public var becomeFirstResponderAtIndex:Int? = nil
     public var isContentTypeOneTimeCode:Bool = true
     public var shouldDismissKeyboardOnEmptyFirstField:Bool = false
@@ -113,7 +110,7 @@ public class SVPinView: UIView {
             return strcmp(char, "\\b") == -92
         }
         
-        if !self.allowsWhitespaces && !isBackSpace() && textField.text!.trimmingCharacters(in: .whitespacesAndNewlines).count == 0 {
+        if !isBackSpace() && textField.text!.trimmingCharacters(in: .whitespacesAndNewlines).count == 0 {
             return
         }
         
@@ -136,12 +133,17 @@ public class SVPinView: UIView {
         // secure text after a bit
         DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(500), execute: {
             if textField.text == "" {
-                textField.text = " "
+                textField.text = textField.tag == 101 ? "" : " "
                 placeholderLabel.isHidden = false
                 textField.layer.sublayerTransform = CATransform3DMakeTranslation(-4, 0, 0)
             } else {
                 placeholderLabel.isHidden = true
-                if self.shouldSecureText { textField.text = self.secureCharacter } else {}
+                if self.shouldSecureText {
+                    textField.text = self.secureCharacter
+                    textField.textAlignment = .center
+                    textField.layer.sublayerTransform = CATransform3DMakeTranslation(0, 0, 0)
+
+                } else {}
             }
         })
         
@@ -161,7 +163,7 @@ public class SVPinView: UIView {
         didChangeCallback?(password.joined())
         
         let pin = getPin()
-        guard !pin.isEmpty else { return }
+        guard !pin.isEmpty && pin.count == pinLength else { return }
         didFinishCallback?(pin)
     }
     
@@ -255,7 +257,7 @@ public class SVPinView: UIView {
             //secure text after a bit
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(500), execute: {
                 if textField.text == "" {
-                    textField.text = " "
+                    textField.text = textField.tag == 101 ? "" : " "
                     placeholderLabel.isHidden = false
                 } else {
                     if self.shouldSecureText { textField.text = self.secureCharacter } else {}
@@ -266,6 +268,11 @@ public class SVPinView: UIView {
             password.append(String(char))
             validateAndSendCallback()
         }
+    }
+    
+    public func reloadView()
+    {
+        collectionView.reloadData()
     }
 }
 
@@ -286,7 +293,7 @@ extension SVPinView : UICollectionViewDataSource, UICollectionViewDelegate, UICo
         
         // Setting up textField
         textField.tag = 101 + indexPath.row
-        textField.text = " "
+        textField.text = textField.tag == 101 ? "" : " "
         textField.layer.sublayerTransform = CATransform3DMakeTranslation(-4, 0, 0)
         textField.isSecureTextEntry = false
         textField.textColor = self.textColor
@@ -323,35 +330,26 @@ extension SVPinView : UICollectionViewDataSource, UICollectionViewDelegate, UICo
     }
     
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        if UIDevice.current.orientation == .landscapeLeft || UIDevice.current.orientation == .landscapeRight {
-            let width = (collectionView.bounds.width - (interSpace * CGFloat(max(pinLength, 1) - 1)))/CGFloat(pinLength)
-            return CGSize(width: width, height: collectionView.frame.height)
-        }
-        let width = (collectionView.bounds.width - (interSpace * CGFloat(max(pinLength, 1) - 1)))/CGFloat(pinLength)
+        
+        //let width = (collectionView.bounds.width - (interSpace * CGFloat(max(pinLength, 1) - 1)))/CGFloat(pinLength)
+        
+        let width = (collectionView.bounds.width - (interSpace * CGFloat(pinLength-1))) / CGFloat(pinLength)
         let height = collectionView.frame.height
-        return CGSize(width: min(width, height), height: min(width, height))
+        return CGSize(width: width, height: height)
     }
     
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        
         return interSpace
     }
     
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         
-        if UIDevice.current.orientation == .landscapeLeft || UIDevice.current.orientation == .landscapeRight {
-            return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        }
-        let width = (collectionView.bounds.width - (interSpace * CGFloat(max(pinLength, 1) - 1)))/CGFloat(pinLength)
-        let height = collectionView.frame.height
-        let top = (collectionView.bounds.height - min(width, height)) / 2
-        if height < width {
-            // If width of field > height, size the fields to the pinView height and center them.
-            let totalCellWidth = height * CGFloat(pinLength)
-            let totalSpacingWidth = interSpace * CGFloat(max(pinLength, 1) - 1)
-            let inset = (collectionView.frame.size.width - CGFloat(totalCellWidth + CGFloat(totalSpacingWidth))) / 2
-            return UIEdgeInsets(top: top, left: inset, bottom: 0, right: inset)
-        }
-        return UIEdgeInsets(top: top, left: 0, bottom: 0, right: 0)
+        return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
     }
     
     public override func layoutSubviews() {
@@ -368,7 +366,7 @@ extension SVPinView : UITextFieldDelegate
         
         if text.count == 0 {
             textField.isSecureTextEntry = false
-            textField.text =  " "
+            textField.text =  textField.tag == 101 ? "" : " "
             placeholderLabel.isHidden = false
         }
         
